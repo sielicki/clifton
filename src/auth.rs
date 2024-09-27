@@ -13,14 +13,7 @@ use url::Url;
 
 use crate::cache;
 
-/// Given an OAuth `client_id` and URL, authenticate with the device code workflow
-pub fn get_access_token<P: AsRef<std::path::Path>>(
-    client_id: &String,
-    issuer_url: &Url,
-    open_webpage: bool,
-    show_qr: bool,
-    token_cache_path: P,
-) -> Result<AccessToken> {
+pub fn client(client_id: &String, issuer_url: &Url) -> Result<BasicClient> {
     let client_id = ClientId::new(client_id.to_string());
     let client_secret = None;
 
@@ -32,12 +25,23 @@ pub fn get_access_token<P: AsRef<std::path::Path>>(
     let device_auth_url = DeviceAuthorizationUrl::from_url(
         format!("{issuer_url}/protocol/openid-connect/auth/device").parse()?,
     );
-
     // Set up the config for the OIDC process.
     let device_client = BasicClient::new(client_id, client_secret, auth_url, Some(token_url))
         .set_device_authorization_url(device_auth_url)
         .set_auth_type(AuthType::RequestBody);
 
+    Ok(device_client)
+}
+
+/// Given an OAuth `client_id` and URL, authenticate with the device code workflow
+pub fn get_access_token<P: AsRef<std::path::Path>>(
+    client_id: &String,
+    issuer_url: &Url,
+    open_webpage: bool,
+    show_qr: bool,
+    token_cache_path: P,
+) -> Result<AccessToken> {
+    let device_client = client(client_id, issuer_url)?;
     // Request the set of codes from the Device Authorization endpoint.
     let details: StandardDeviceAuthorizationResponse = device_client
         .exchange_device_code()

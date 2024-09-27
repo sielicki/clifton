@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 # SPDX-FileCopyrightText: © 2024 Matt Williams <matt.williams@bristol.ac.uk>
 # SPDX-License-Identifier: CC0-1.0
-version = 3
+version = 4
 
 [[package]]
 name = "addr2line"

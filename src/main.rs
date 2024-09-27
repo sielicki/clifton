@@ -277,6 +277,7 @@ fn main() -> Result<()> {
             let cert = cache::read_file(token_cache_path)
                 .ok()
                 .and_then(|token| {
+                    // TODO Don't even try the token if it's expired
                     // If it's there, try to use it
                     get_cert(&identity, &config.ca_url, &token).ok()
                 })
