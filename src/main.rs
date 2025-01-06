@@ -370,7 +370,8 @@ fn main() -> Result<()> {
                         std::fs::read_to_string(&main_ssh_config_path).unwrap_or_default();
                     let clifton_ssh_config_path =
                         main_ssh_config_path.with_file_name("config_clifton");
-                    let include_line = format!("Include {}\n", clifton_ssh_config_path.display());
+                    let include_line =
+                        format!("Include \"{}\"\n", clifton_ssh_config_path.display());
                     if !current_main_config.contains(&include_line) {
                         let new_config = include_line + &current_main_config;
                         std::fs::write(&main_ssh_config_path, new_config)
@@ -457,7 +458,7 @@ fn main() -> Result<()> {
                     .get(platform_name)
                     .context(format!("Could not find {} in platforms.", platform_name))?;
                 let line = format!(
-                    "ssh {}-i '{}' -o 'CertificateFile {}-cert.pub' -o 'AddKeysToAgent yes' {}.{}@{}",
+                    "ssh {}-i '{}' -o 'CertificateFile \"{}-cert.pub\"' -o 'AddKeysToAgent yes' {}.{}@{}",
                     if let Some(j) = &platform.proxy_jump {
                         format!("-J '%r@{}' ", j)
                     } else {
@@ -502,8 +503,8 @@ fn ssh_config(f: &CertificateConfigCache) -> Result<String, anyhow::Error> {
                 let jump_config = format!(
                     "Host {jump_alias}\n\
                                 \tHostname {}\n\
-                                \tIdentityFile {1}\n\
-                                \tCertificateFile {1}-cert.pub\n\
+                                \tIdentityFile \"{1}\"\n\
+                                \tCertificateFile \"{1}-cert.pub\"\n\
                             \n",
                     proxy_jump,
                     f.identity.display(),
@@ -512,8 +513,8 @@ fn ssh_config(f: &CertificateConfigCache) -> Result<String, anyhow::Error> {
                     "Host *.{} !{jump_alias}\n\
                                 \tHostname {}\n\
                                 \tProxyJump %r@{}\n\
-                                \tIdentityFile {3}\n\
-                                \tCertificateFile {3}-cert.pub\n\
+                                \tIdentityFile \"{3}\"\n\
+                                \tCertificateFile \"{3}-cert.pub\"\n\
                                 \tAddKeysToAgent yes\n\
                             \n",
                     &c.alias,
@@ -526,8 +527,8 @@ fn ssh_config(f: &CertificateConfigCache) -> Result<String, anyhow::Error> {
                 format!(
                     "Host *.{}\n\
                                 \tHostname {}\n\
-                                \tIdentityFile {2}\n\
-                                \tCertificateFile {2}-cert.pub\n\
+                                \tIdentityFile \"{2}\"\n\
+                                \tCertificateFile \"{2}-cert.pub\"\n\
                                 \tAddKeysToAgent yes\n\
                             \n",
                     &c.alias,
