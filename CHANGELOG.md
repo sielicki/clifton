@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Unreleased
 ### Fixed
 - Quote paths in config files. This is required for paths which have spaces in them.
+- Allow `--config-file` to be passed at any level of subcommands.
 
 ## [0.2.0] - 2024-09-13
 ### Changed

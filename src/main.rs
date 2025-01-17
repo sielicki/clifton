@@ -97,7 +97,8 @@ struct Args {
         help=format!(
             "The clifton config file to use [default: {}]",
             &default_config_path().display(),
-        )
+        ),
+        global=true,
     )]
     config_file: Option<std::path::PathBuf>,
 
