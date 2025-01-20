@@ -15,9 +15,6 @@ pub struct Config {
     /// The URL of the CA server
     #[serde(default = "Config::default_ca_url")]
     pub ca_url: Url,
-    /// The OIDC client ID
-    #[serde(default = "Config::default_client_id")]
-    pub client_id: String,
     /// The default location of the identity to use
     #[serde(default = "Config::default_identity")]
     pub identity: Option<std::path::PathBuf>,
@@ -38,9 +35,6 @@ impl Config {
         "https://ca.isambard.ac.uk/"
             .parse()
             .expect("Default CA URL does not parse")
-    }
-    fn default_client_id() -> String {
-        "clifton".to_string()
     }
     fn default_identity() -> Option<std::path::PathBuf> {
         #[allow(clippy::expect_used)]

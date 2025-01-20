@@ -54,6 +54,32 @@ impl CertificateSignResponse {
     }
 }
 
+#[derive(Deserialize)]
+struct CaOidcResponse {
+    issuer: url::Url,
+    client_id: oauth2::ClientId,
+    #[serde(deserialize_with = "CaOidcResponse::check_version", rename = "version")]
+    _version: u32,
+}
+
+impl CaOidcResponse {
+    /// The version of the response that the CA should return.
+    const VERSION: u32 = 1;
+    fn check_version<'de, D>(deserializer: D) -> Result<u32, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let v = u32::deserialize(deserializer)?;
+        let expected = Self::VERSION;
+        if v != expected {
+            return Err(serde::de::Error::custom(format!(
+                "mismatched version `{v}` for OIDC details response, expected `{expected}`"
+            )));
+        }
+        Ok(v)
+    }
+}
+
 type Projects = HashMap<String, Vec<String>>;
 
 type Platforms = HashMap<String, Platform>;
@@ -254,14 +280,13 @@ fn main() -> Result<()> {
                 );
             }
 
-            let issuer: url::Url = reqwest::blocking::get(format!("{}issuer", &config.ca_url))
-                .context("Could not parse CA issuer URL.")?
-                .error_for_status()
-                .context("Could not get CA issuer URL")?
-                .text()
-                .context("Could not parse CA issuer URL reponse as text.")?
-                .parse()
-                .context("Could not parse CA issuer URL as URL.")?;
+            let oidc_details: CaOidcResponse =
+                reqwest::blocking::get(format!("{}oidc", &config.ca_url))
+                    .context("Could not parse CA OIDC details URL.")?
+                    .error_for_status()
+                    .context("Could not get CA OIDC details URL")?
+                    .json()
+                    .context("Could not parse CA OIDC details as URL.")?;
 
             let cert_file_path = identity_file.with_file_name(
                 [
@@ -289,8 +314,8 @@ fn main() -> Result<()> {
                     || {
                         // If the certificate could not be fetched, renew the API token
                         let token = get_access_token(
-                            &config.client_id,
-                            &issuer,
+                            &oidc_details.client_id,
+                            &oidc_details.issuer,
                             open_browser,
                             show_qr,
                             token_cache_path,

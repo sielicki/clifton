@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Quote paths in config files. This is required for paths which have spaces in them.
 - Allow `--config-file` to be passed at any level of subcommands.
 
+### Changed
+- Retrieve OIDC client ID from the CA rather than setting it in the config.
+
 ## [0.2.0] - 2024-09-13
 ### Changed
 - Use the new [Conch](https://github.com/isambard-sc/conch/) CA
