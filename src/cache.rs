@@ -60,5 +60,9 @@ pub fn delete_file<P: AsRef<std::path::Path>>(file: P) -> Result<()> {
 
 /// Delete the entire cache directory
 pub fn delete_all() -> Result<()> {
-    std::fs::remove_dir_all(cache_dir()?).context("Could not delete cache directory.")
+    match std::fs::remove_dir_all(cache_dir()?) {
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        r => r,
+    }
+    .context("Could not delete cache directory.")
 }
