@@ -537,7 +537,12 @@ fn main() -> Result<()> {
                     _ => {
                         let projects = projects
                             .iter()
-                            .map(|(p_id, p)| format!(" - {} ({})", &p_id, &p.name))
+                            .map(|(p_id, p)| {
+                                match p.name.as_str() {
+                                    "" => format!("- {}", &p_id),
+                                    name => format!(" - {} ({})", &p_id, name),
+                                }
+                            })
                             .collect::<Vec<_>>()
                             .join("\n");
                         println!(
