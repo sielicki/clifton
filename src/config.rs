@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: © 2024 Matt Williams <matt.williams@bristol.ac.uk>
 // SPDX-License-Identifier: MIT
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -12,9 +14,12 @@ pub struct Config {
     /// Should the QR code be shown when authenticating
     #[serde(default = "Config::default_show_qr")]
     pub show_qr: bool,
-    /// The URL of the CA server
-    #[serde(default = "Config::default_ca_url")]
-    pub ca_url: Url,
+    /// Which site to connect to if not otherwise specified
+    #[serde(default = "Config::default_site")]
+    pub default_site: String,
+    /// The sites that are registered to connect to
+    #[serde(default = "Config::default_sites")]
+    pub sites: HashMap<String, Site>,
     /// The default location of the identity to use
     #[serde(default = "Config::default_identity")]
     pub identity: Option<std::path::PathBuf>,
@@ -30,11 +35,20 @@ impl Config {
     fn default_show_qr() -> bool {
         true
     }
-    fn default_ca_url() -> Url {
-        #[allow(clippy::expect_used)]
-        "https://ca.isambard.ac.uk/"
-            .parse()
-            .expect("Default CA URL does not parse")
+    fn default_site() -> String {
+        "brics".into()
+    }
+    fn default_sites() -> HashMap<String, Site> {
+        [(
+            "brics".to_string(),
+            Site {
+                #[allow(clippy::expect_used)]
+                ca_url: "https://ca.isambard.ac.uk/"
+                    .parse()
+                    .expect("Default CA URL does not parse"),
+            },
+        )]
+        .into()
     }
     fn default_identity() -> Option<std::path::PathBuf> {
         #[allow(clippy::expect_used)]
@@ -51,4 +65,10 @@ impl Config {
     fn default_check_version() -> bool {
         true
     }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Site {
+    /// The URL of the CA server
+    pub ca_url: Url,
 }

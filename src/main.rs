@@ -190,8 +190,13 @@ fn main() -> Result<()> {
                 );
             }
 
+            let site_name = config.default_site;
+            let site = config
+                .sites
+                .get(&site_name)
+                .context(format!("Could not get site details for `{site_name}`."))?;
             let oidc_details: CaOidcResponse =
-                reqwest::blocking::get(format!("{}oidc", &config.ca_url))
+                reqwest::blocking::get(format!("{}oidc", &site.ca_url))
                     .context("Could not get CA OIDC details.")?
                     .error_for_status()
                     .context("Could not get CA OIDC details.")?
@@ -218,7 +223,7 @@ fn main() -> Result<()> {
                     open_browser,
                     show_qr,
                 )?;
-                get_cert(&identity, &config.ca_url, token.secret())
+                get_cert(&identity, &site.ca_url, token.secret())
             };
             let cert = match cert {
                 Ok(cert) => cert,
