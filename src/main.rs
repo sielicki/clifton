@@ -68,7 +68,7 @@ enum Commands {
         /// The short name of the project to provide the command for
         project: String,
         /// The resource to access the project on
-        platform: Option<String>, // TODO rename (and document change)
+        resource: Option<String>,
     },
     /// Empty the cache
     #[command(hide = true)]
@@ -379,7 +379,7 @@ fn main() -> Result<()> {
                 }
             }
         }
-        Some(Commands::SshCommand { project, platform }) => {
+        Some(Commands::SshCommand { project, resource }) => {
             let f: CertificateConfigCache = serde_json::from_str(
                 &cache::read_file(cert_details_file_name).context(
                     "Could not read certificate details cache. Have you run `clifton auth`?",
@@ -395,22 +395,23 @@ fn main() -> Result<()> {
             } {
                 let (resource_id, resource_association) = match s.len() {
                     2.. => {
-                        if let Some(resource) = platform {
+                        if let Some(resource) = resource {
                             s.iter().find(|(resource_id, _)| *resource_id == resource).context("No matching resource.")
                         } else {
                             Err(anyhow::anyhow!(
                                 "Ambiguous project. \
                                 It's available on resources {s:?}. \
-                                Try specifying the resource with `clifton ssh-command {project} <PLATFORM>`"
+                                Try specifying the resource with `clifton ssh-command {project} <RESOURCE>`"
                             ))
                         }
                     }
                     _ => s.iter().next().ok_or(anyhow::anyhow!("No resources found for requested project.")),
                 }
                 .context("Could not get resource.")?;
-                let resource = f
-                    .resource(resource_id)
-                    .context(format!("Could not find {} in platforms.", resource_id))?;
+                let resource = f.resource(resource_id).context(format!(
+                    "Could not find {} in list of resources.",
+                    resource_id
+                ))?;
                 let line = format!(
                     "ssh {}-i '{}' -o 'CertificateFile \"{}-cert.pub\"' -o 'AddKeysToAgent yes' {}.{}@{}",
                     if let Some(j) = &resource.proxy_jump {
