@@ -59,7 +59,8 @@ pub fn get_access_token(
     }
     println!("Open this URL in your browser:\n{verification_uri_complete}");
     if show_qr {
-        let qr = QrCode::new(verification_uri_complete)?
+        let qr_code_url = Url::parse_with_params(verification_uri_complete, &[("qr", "1")])?;
+        let qr = QrCode::new(qr_code_url.as_str())?
             .render::<unicode::Dense1x2>()
             .light_color(unicode::Dense1x2::Light)
             .dark_color(unicode::Dense1x2::Dark)
