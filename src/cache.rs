@@ -35,7 +35,7 @@ pub fn write_file<P: AsRef<std::path::Path>, C: AsRef<[u8]>>(file: P, contents: 
     let mut f = std::fs::OpenOptions::new();
     #[cfg(unix)]
     {
-        f = f.mode(0o600).clone();
+        f = f.mode(0o600).clone(); // u=rw,g=,o=
     }
     f.write(true)
         .truncate(true)

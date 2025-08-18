@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use cert::{Associations, CertificateConfigCache, CertificateSignResponse};
 use clap::{CommandFactory as _, Parser, Subcommand};
 use itertools::Itertools;
-use std::io::IsTerminal;
+use std::io::{IsTerminal, Write as _};
 
 use crate::auth::get_access_token;
 use crate::cert::CaOidcResponse;
@@ -238,16 +238,28 @@ fn main() -> Result<()> {
                 CertificateSignResponse::V2(r) => &r.certificate,
                 CertificateSignResponse::V3(r) => &r.certificate,
             };
-            std::fs::write(
-                &cert_file_path,
-                format!(
-                    "{}\n",
-                    &certificate
+            let mut f = std::fs::OpenOptions::new();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::OpenOptionsExt as _;
+
+                f = f.mode(0o644).clone(); // u=rw,g=r,o=r
+            }
+            f.write(true)
+                .truncate(true)
+                .create(true)
+                .open(&cert_file_path)
+                .context(format!(
+                    "Could not open certificate file `{}` for writing.",
+                    &cert_file_path.display()
+                ))?
+                .write_all(
+                    certificate
                         .to_openssh()
                         .context("Could not convert certificate to OpenSSH format.")?
-                ),
-            )
-            .context("Could not write certificate file.")?;
+                        .as_ref(),
+                )
+                .context("Could not write certificate file.")?;
             let green = anstyle::Style::new()
                 .fg_color(Some(anstyle::AnsiColor::Green.into()))
                 .bold();
@@ -345,8 +357,23 @@ fn main() -> Result<()> {
                     if config == &current_clifton_config {
                         println!("SSH config is already up to date.");
                     } else {
-                        std::fs::write(&clifton_ssh_config_path, config)
-                            .context("Could not write clifon SSH config file.")?;
+                        let mut f = std::fs::OpenOptions::new();
+                        #[cfg(unix)]
+                        {
+                            use std::os::unix::fs::OpenOptionsExt as _;
+
+                            f = f.mode(0o644).clone(); // u=rw,g=r,o=r
+                        }
+                        f.write(true)
+                            .truncate(true)
+                            .create(true)
+                            .open(&clifton_ssh_config_path)
+                            .context(format!(
+                                "Could not open clifton SSH config file `{}`.",
+                                &clifton_ssh_config_path.display()
+                            ))?
+                            .write_all(config.as_ref())
+                            .context("Could not write clifton SSH config file.")?;
                         println!(
                             "Wrote SSH config to {}.",
                             &clifton_ssh_config_path.display()
