@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - Retrieve OIDC client ID from the CA rather than setting it in the config. Requires version 0.3 of Conch.
+- Add option to automatically write the SSH config on a successful auth (PR #139). Thanks to David Llewellyn-Jones (@llewelld).
 
 ## [0.2.0] - 2024-09-13
 ### Changed
