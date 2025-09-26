@@ -469,34 +469,29 @@ fn ssh_config_write(
 }
 
 fn print_available_aliases(f: CertificateConfigCache) -> Result<()> {
-    println!(
-        "Available host aliases: \n - {}",
-        match &f.associations {
-            AssociationsCache::Projects(projects) => projects
-                .iter()
-                .flat_map(|(project_id, project)| {
-                    project.resources.keys().map(|resource_id| {
-                        Ok(format!(
-                            "{}.{}",
+    println!("Available SSH host aliases:");
+    match &f.associations {
+        AssociationsCache::Projects(projects) => projects
+            .iter()
+            .sorted_by_key(|x| x.0)
+            .try_for_each(|(project_id, project)| {
+                project
+                    .resources
+                    .keys()
+                    .sorted()
+                    .try_for_each(|resource_id| {
+                        Ok(println!(
+                            " - {}.{}",
                             project_id.clone(),
                             &f.resource(resource_id)?.alias
                         ))
                     })
-                })
-                .collect::<Result<Vec<_>>>()?
-                .join("\n - "),
-            AssociationsCache::Resources(resources) => {
-                resources
-                    .keys()
-                    .map(|resource_id| Ok(&f.resource(resource_id)?.alias))
-                    .collect::<Result<Vec<_>>>()?
-                    .into_iter()
-                    .join("\n - ")
-            }
-        }
-    );
-
-    Ok(())
+            }),
+        AssociationsCache::Resources(resources) => resources
+            .keys()
+            .sorted()
+            .try_for_each(|resource_id| Ok(println!(" - {}", &f.resource(resource_id)?.alias))),
+    }
 }
 
 #[cfg(test)]
