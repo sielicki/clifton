@@ -251,13 +251,13 @@ fn main() -> Result<()> {
                             .collect::<Vec<_>>()
                             .join("\n");
                         println!(
-                                    "{green}Successfully authenticated as {} and downloaded SSH certificate for projects{green:#}:\n{projects}\n",
+                                    "\n{green}Successfully authenticated as {} and downloaded SSH certificate for projects{green:#}:\n{projects}",
                                     &cert_config_cache.user
                                 );
                     }
                 },
                 AssociationsCache::Resources(_resources) => println!(
-                                    "{green}Successfully authenticated as {} and downloaded SSH certificate.{green:#}",
+                                    "\n{green}Successfully authenticated as {} and downloaded SSH certificate.{green:#}",
                                     &cert_config_cache.user
                                 ),
             }
@@ -469,12 +469,15 @@ fn ssh_config_write(
 }
 
 fn print_available_aliases(f: CertificateConfigCache) -> Result<()> {
-    println!("Available SSH host aliases:");
+    println!("\nAvailable SSH host aliases:");
     match &f.associations {
         AssociationsCache::Projects(projects) => projects
             .iter()
             .sorted_by_key(|x| x.0)
             .try_for_each(|(project_id, project)| {
+                if !&project.name.is_empty() {
+                    println!("{}", project.name);
+                }
                 project
                     .resources
                     .keys()
