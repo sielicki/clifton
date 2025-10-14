@@ -240,7 +240,7 @@ fn main() -> Result<()> {
                         anyhow::bail!("Did not authenticate with any projects.")
                     }
                     _ => {
-                        let projects = projects
+                        let project_name_list = projects
                             .iter()
                             .map(|(p_id, p)| {
                                 match p.name.as_str() {
@@ -266,12 +266,46 @@ fn main() -> Result<()> {
                 serde_json::to_string(&cert_config_cache)?,
             )
             .context("Could not write certificate details cache.")?;
+
+            // We are, in prinicple, returned many certificates. Find the one with the soonest expiry time and print it.
+            let first_expiry = match &cert_config_cache.associations {
+                AssociationsCache::Projects(projects) => projects
+                    .iter()
+                    .map(|(_, p)| {
+                        p.resources
+                            .iter()
+                            .filter_map(|(_, ra)| {
+                                ssh_key::Certificate::read_file(ra.certificate.as_path()).ok()
+                            })
+                            .map(|cert| cert.valid_before_time())
+                            .min()
+                    })
+                    .flatten()
+                    .min(),
+                AssociationsCache::Resources(resources) => resources
+                    .iter()
+                    .filter_map(|(_, ra)| {
+                        ssh_key::Certificate::read_file(ra.certificate.as_path()).ok()
+                    })
+                    .map(|cert| cert.valid_before_time())
+                    .min(),
+            };
+            if let Some(first_expiry) = first_expiry {
+                type Tz = chrono::offset::Utc; // TODO This is UNIX time, not UTC
+                let valid_before: chrono::DateTime<Tz> = first_expiry.into();
+                let valid_for = valid_before - Tz::now();
+                println!(
+                    "Certificate valid for {} hours and {} minutes.",
+                    valid_for.num_hours(),
+                    valid_for.num_minutes() % 60,
+                );
+            }
+
             let clifton_ssh_config_path = dirs::home_dir()
                 .context("")?
                 .join(".ssh")
                 .join("config_clifton");
             let ssh_config = cert_config_cache.ssh_config()?;
-
             if ssh_config != std::fs::read_to_string(&clifton_ssh_config_path).unwrap_or_default() {
                 if write_config.unwrap_or(config.write_config) {
                     ssh_config_write(
