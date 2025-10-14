@@ -67,6 +67,7 @@ enum Commands {
     },
     /// Display the SSH command line to use for each project.
     /// Note that the given command may not work for non-standard identity file locations.
+    #[command(hide = true)]
     SshCommand {
         /// The short name of the project to provide the command for
         project: String,
@@ -127,7 +128,7 @@ fn main() -> Result<()> {
         None => default_config_path().into(),
     };
 
-    let config: config::Config = match std::fs::read_to_string(config_file_path) {
+    let config: config::Config = match std::fs::read_to_string(&config_file_path) {
         Ok(config_string) => toml::from_str(&config_string)?,
         Err(_) => toml::from_str("")?,
     };
@@ -404,7 +405,7 @@ fn main() -> Result<()> {
         }
         Some(Commands::ClearCache) => cache::delete_all()?,
         Some(Commands::Config) => {
-            println!("{}", default_config_path().display());
+            println!("{}", &config_file_path.display());
         }
         None => Args::command().print_help()?,
     }
