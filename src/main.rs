@@ -134,7 +134,7 @@ fn main() -> Result<()> {
     };
 
     if config.check_version {
-        let grace_days = 2;
+        let grace_days = 5;
         if let Err(e) = version::check_for_new_version(
             "https://github.com/isambard-sc/clifton/releases.atom".parse()?,
             grace_days,
