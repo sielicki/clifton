@@ -106,7 +106,8 @@ jobs:
         id: exe-zip
         run: |
           ZIP_FILE="$(basename ${{ matrix.asset-name }} .exe).zip"
-          zip "${ZIP_FILE}" "${{ matrix.asset-name }}"
+          mv "${{ matrix.asset-name }}" "clifton.exe"
+          zip "${ZIP_FILE}" "clifton.exe"
           echo "ZIP_FILE=${ZIP_FILE}" >> "${GITHUB_OUTPUT}"
       - name: Store zip artefacts
         if: steps.exe-zip.outcome == 'success'
